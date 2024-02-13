@@ -201,7 +201,7 @@ async function handleConfirm(value) {
     console.log(currentPage1);
 
 
-    await fetchFriends(userStore.uid, currentPage1);
+    await fetchFriends(userStore.uid, currentPage1.value);
 
     confirm.value = false;
   } catch (error) {
@@ -329,7 +329,7 @@ async function getInfo(value:any) {
     form.value.uid = info.uid
     form.value.nickname = info.nickname
 
-    //await userStore.createWebSocket(info.uid, info.nickname, info.avatar, info.jtime)
+    await userStore.initUser(info.uid, info.nickname, info.avatar, info.jtime)
 
   } catch (error) {
     console.error('token请求失败', error);
@@ -354,22 +354,6 @@ const fetchFriends = async (uid,page)=>{
 }
 
 
-
-const submitFriends = async() => {
-  friendForm.value.userId = userStore.uid;
-  friendForm.value.friendId = search.value;
-
-  const response = await axios.post('http://localhost:8080/friend/add', friendForm.value);
-  if (response.data===200){
-    alert('添加成功');
-  }else if(response.data===201){
-    alert('添加失败 好友信息不存在')
-  }else if(response.data===203){
-    alert('添加失败不要重复添加');
-  }else{
-    alert('添加失败');
-  }
-}
 
 function toHomePage() {
   router.push('/home')

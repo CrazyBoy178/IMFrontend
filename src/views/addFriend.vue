@@ -329,7 +329,8 @@ async function getInfo(value:any) {
     form.value.uid = info.uid
     form.value.nickname = info.nickname
 
-    //await userStore.createWebSocket(info.uid, info.nickname, info.avatar, info.jtime)
+    await userStore.initUser(info.uid, info.nickname, info.avatar, info.jtime)
+
 
   } catch (error) {
     console.error('token请求失败', error);

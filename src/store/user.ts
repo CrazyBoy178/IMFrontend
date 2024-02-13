@@ -21,6 +21,15 @@ export const useUser = defineStore("user", {
 	getters: {},
 	// Actions 相当于组件中的 methods
 	actions: {
+		async initUser(uid:string,nickname: string,avatar:string,jtime:string){
+			this.uid = uid
+			this.avatar = avatar
+			this.jointime = jtime
+			// 设置用户昵称
+			this.nickname = nickname
+		},
+
+
 		// 创建 WebSocket 实例连接
 		async createWebSocket(uid:string,nickname: string,avatar:string,jtime:string) {
 			// 验证是否存在实例 存在则先关闭
