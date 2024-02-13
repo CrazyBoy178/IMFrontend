@@ -64,15 +64,17 @@ export const useUser = defineStore("user", {
 								})
 							}else {
 								this.friendsListInfo[findIndex].latestNews = data.messages
+
+									this.friendsListInfo[findIndex].unreadMessagesCount++;
+
 								this.friendsListInfo[findIndex].messages.push({
 									type: 'friend', // 消息类型
 									message: data.messages// 消息内容
 								})
 							}
+
 						}
-
 					}
-
 				};
 				// 监听WebSocket关闭事件
 				this.webSocketInstance.onclose = () => {
@@ -185,6 +187,9 @@ export const useUser = defineStore("user", {
 		// },
 
 		// 点击用户后将未读消息数清零
+		clearUnreadMessages(friend: any) {
+			friend.unreadMessagesCount = 0;
+		},
 
 		async updateFriends(data: any) {
 			if (this.friendsListInfo.length > 0) {
@@ -198,11 +203,14 @@ export const useUser = defineStore("user", {
 							nickname: data.messages[i].nickname,
 							avatar: data.messages[i].avatar,
 							latestNews: '',
-							messages: []
+							messages: [],
+							unreadMessagesCount:0,
+
 						};
 
 						// 如果好友在线，则发送上线消息
 						if (friend.status === 1) {
+
 							friend.latestNews = '好友已经上线可以开始聊天了';
 							friend.messages.push({
 								type: 'friend',
@@ -233,11 +241,13 @@ export const useUser = defineStore("user", {
 						nickname: data.messages[i].nickname,
 						avatar: data.messages[i].avatar,
 						latestNews: '',
-						messages: []
+						messages: [],
+						unreadMessagesCount:0,
 					};
 
 					// 如果好友在线，则发送上线消息
 					if (friend.status === 1) {
+						friend.unreadMessagesCount++;
 						friend.latestNews = '好友已经上线可以开始聊天了';
 						friend.messages.push({
 							type: 'friend',
@@ -251,8 +261,10 @@ export const useUser = defineStore("user", {
 					if (i === 0) {
 						this.friendsInfo = friend;
 					}
+
 				}
 			}
+			console.log(this.friendsInfo)
 		},
 
 		async sendMessages(receiveMessage: string) {

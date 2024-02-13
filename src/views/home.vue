@@ -38,15 +38,15 @@
       <el-col :span="6">
         <div class="grid-content friend-list">
           <div v-infinite-scroll="friendListLoadInfiniteScroll" class="infinite-scroll">
-            <div v-for="(friend,index) in friendsListInfo" :key="index" class="friend" @click="friendsInfo=friend">
+            <div v-for="(friend,index) in friendsListInfo" :key="index" class="friend" @click="selectFriend(friend)">
               <div class="friend-avatar">
                 <img alt="" :src="friend.avatar">
               </div>
-              <div class="message" @click="clearUnreadMessages($event,friend)" ref="messageItem">
+              <div class="message">
                 <div class="nickname">
                   <div>{{ friend.nickname }}</div>
-                  <div class="badge" v-if="friend.messages.length > 0">
-                    {{ friend.messages.length < 99 ? friend.messages.length : '99+' }}
+                  <div class="badge" v-if="friend.unreadMessagesCount > 0">
+                    {{ friend.unreadMessagesCount < 99 ? friend.unreadMessagesCount : '99+' }}
                   </div>
                 </div>
                 <div class="new-message">
@@ -200,14 +200,16 @@ const form = ref({
   nickname: userStore.nickname,
 })
 
-function clearUnreadMessages(event,friend) {
-  // 将好友对象的未读消息数清零
-  // 将好友对象的未读消息数清零
-  // 更新显示未读消息数的元素
-  let badgeElement = event.target.querySelector('.badge');
-  if (badgeElement) {
-    badgeElement.textContent = friend.messages.length < 99 ? friend.messages.length : '99+';
-  }
+
+function selectFriend(friend) {
+
+  // 设置当前选中的好友信息
+  userStore.friendsInfo = friend;
+  console.log(friend.unreadMessagesCount)
+  // 清零未读消息数
+  userStore.clearUnreadMessages(friend);
+  console.log(friend.unreadMessagesCount)
+
 }
 
 
@@ -356,21 +358,6 @@ const sendMessages = async () => {
   }
 }
 
-const submitFriends = async() => {
-  friendForm.value.userId = userStore.uid;
-  friendForm.value.friendId = search.value;
-
-  const response = await axios.post('http://localhost:8080/friend/add', friendForm.value);
-  if (response.data===200){
-    alert('添加成功');
-  }else if(response.data===201){
-    alert('添加失败 好友信息不存在')
-  }else if(response.data===203){
-    alert('添加失败不要重复添加');
-  }else{
-    alert('添加失败');
-  }
-}
 
 function toManageFriend (){
   router.push('/manageFriend')
