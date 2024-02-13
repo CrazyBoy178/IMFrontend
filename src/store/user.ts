@@ -57,6 +57,7 @@ export const useUser = defineStore("user", {
 						let findIndex = this.friendsListInfo.findIndex((object: any) => object.uid === data.sendUid);
 						if (findIndex !== -1) {
 							if (this.friendsListInfo[findIndex].uid === this.friendsInfo.uid){
+								this.friendsListInfo[findIndex].unreadMessagesCount=0;
 								this.friendsInfo.latestNews = data.messages
 								this.friendsInfo.messages.push({
 									type: 'friend', // 消息类型
