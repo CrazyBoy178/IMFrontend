@@ -78,7 +78,8 @@
                 <div v-for="(message,index) in friendsInfo.messages" :key="index">
                   <div v-if="message.type === 'friend'" class="left">
                     <div class="left-avatar">
-                      <img alt="" :src="message.avatar">
+                      <img alt="" :src="getFriendAvatar(message.receiveUid)">
+
                     </div>
                     <div class="left-message">
                       {{ message.message }}
@@ -170,7 +171,7 @@
 
 <script lang="ts" setup>
 import {Avatar, CirclePlusFilled, Comment, Folder, Search, Tools, WalletFilled,Plus} from "@element-plus/icons-vue";
-import {onMounted, reactive, ref, toRefs} from 'vue'
+import {onMounted, reactive, Ref, ref, toRefs} from 'vue'
 import {useNetwork} from '@vueuse/core'
 import {useUser} from '../store/user';
 import {storeToRefs} from 'pinia'
@@ -192,7 +193,32 @@ const imageUrl = ref('')
 
 let dialogFormVisible = ref(false)
 
-let friendInfo = ref('')
+let friendInfo: Ref<Friend[]> = ref('')
+
+interface Friend {
+  friendId: string;
+  friendnickname: string;
+  friendAvatar: string; // 头像信息
+}
+
+function getFriendAvatar(uid) {
+  console.log(uid);
+  console.log(friendInfo);
+  if (friendInfo.value) {
+    const friend = friendInfo.value.find((friend: any) => friend.friendId === uid);
+    if (friend) {
+      console.log("找到的朋友对象:", friend);
+      return friend.friendAvatar;
+    } else {
+      console.log("未找到匹配的朋友对象");
+      return '';
+    }
+  } else {
+    console.log("friendInfo 为 undefined");
+    return '';
+  }
+}
+
 
 
 const form = ref({
@@ -343,7 +369,7 @@ const fetchFriends = async (uid)=>{
   try {
     const response = await axios.get(`http://localhost:8080/friend/find/${uid}`);
     console.log(response.data)
-    friendInfo = response.data
+    friendInfo.value = response.data
   } catch (error) {
     console.error('Error fetching friends:', error);
     throw error; // You might want to handle this error in the calling code

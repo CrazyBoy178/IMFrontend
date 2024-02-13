@@ -221,6 +221,7 @@ export const useUser = defineStore("user", {
 
 							friend.latestNews = '好友已经上线可以开始聊天了';
 							friend.messages.push({
+								receiveUid: friend.uid,
 								type: 'friend',
 								message: '好友已经上线可以开始聊天了'
 							});
@@ -234,6 +235,7 @@ export const useUser = defineStore("user", {
 						if (friend.status === 1) {
 							friend.latestNews = '好友已经上线可以开始聊天了';
 							friend.messages.push({
+								receiveUid: friend.uid,
 								type: 'friend',
 								message: '好友已经上线可以开始聊天了'
 							});
@@ -258,6 +260,7 @@ export const useUser = defineStore("user", {
 						friend.unreadMessagesCount++;
 						friend.latestNews = '好友已经上线可以开始聊天了';
 						friend.messages.push({
+							receiveUid: friend.uid,
 							type: 'friend',
 							message: '好友已经上线可以开始聊天了'
 						});
