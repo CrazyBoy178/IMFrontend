@@ -64,9 +64,7 @@ export const useUser = defineStore("user", {
 								})
 							}else {
 								this.friendsListInfo[findIndex].latestNews = data.messages
-
-									this.friendsListInfo[findIndex].unreadMessagesCount++;
-
+								this.friendsListInfo[findIndex].unreadMessagesCount++;
 								this.friendsListInfo[findIndex].messages.push({
 									type: 'friend', // 消息类型
 									message: data.messages// 消息内容
