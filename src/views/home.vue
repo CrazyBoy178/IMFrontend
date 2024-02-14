@@ -78,8 +78,7 @@
                 <div v-for="(message,index) in friendsInfo.messages" :key="index">
                   <div v-if="message.type === 'friend'" class="left">
                     <div class="left-avatar">
-                      <img alt="" :src="getFriendAvatar(message.receiveUid)">
-
+                      <img alt="" :src=message.receiveAvatar @click="console.log(message)">
                     </div>
                     <div class="left-message">
                       {{ message.message }}
@@ -193,7 +192,7 @@ const imageUrl = ref('')
 
 let dialogFormVisible = ref(false)
 
-let friendInfo: Ref<Friend[]> = ref('')
+let friendInfo: Ref<Friend[]> = ref([])
 
 interface Friend {
   friendId: string;
@@ -201,10 +200,10 @@ interface Friend {
   friendAvatar: string; // 头像信息
 }
 
-function getFriendAvatar(uid) {
+const getFriendAvatar = (uid) => {
   console.log(uid);
   console.log(friendInfo);
-  if (friendInfo.value) {
+  if (friendInfo) {
     const friend = friendInfo.value.find((friend: any) => friend.friendId === uid);
     if (friend) {
       console.log("找到的朋友对象:", friend);
@@ -537,7 +536,8 @@ function toAddFriend (){
   }
 
   .infinite-scroll {
-    overflow: auto;
+    max-height: 100vh;
+    overflow-y: auto; /* 当内容超过容器高度时显示垂直滚动条 */
     height: 100%;
     width: 100%;
 

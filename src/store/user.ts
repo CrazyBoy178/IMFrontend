@@ -69,16 +69,20 @@ export const useUser = defineStore("user", {
 								this.friendsListInfo[findIndex].unreadMessagesCount=0;
 								this.friendsInfo.latestNews = data.messages
 								this.friendsInfo.messages.push({
+									receiveAvatar: data.messages[findIndex].avatar,
 									type: 'friend', // 消息类型
 									message: data.messages// 消息内容
 								})
+								console.log(data.messages[findIndex].messages.receiveAvatar)
 							}else {
 								this.friendsListInfo[findIndex].latestNews = data.messages
 								this.friendsListInfo[findIndex].unreadMessagesCount++;
 								this.friendsListInfo[findIndex].messages.push({
+									receiveAvatar: data.messages[findIndex].avatar,
 									type: 'friend', // 消息类型
 									message: data.messages// 消息内容
 								})
+								console.log(data.messages[findIndex].messages.receiveAvatar)
 							}
 
 						}
@@ -94,7 +98,6 @@ export const useUser = defineStore("user", {
 					console.error('WebSocket error:', error);
 					reject(error)
 				};
-				//</editor-fold>
 			})
 		},
 		// async updateFriends(data: any) {
@@ -221,7 +224,7 @@ export const useUser = defineStore("user", {
 
 							friend.latestNews = '好友已经上线可以开始聊天了';
 							friend.messages.push({
-								receiveUid: friend.uid,
+								receiveAvatar: friend.avatar,
 								type: 'friend',
 								message: '好友已经上线可以开始聊天了'
 							});
@@ -235,7 +238,7 @@ export const useUser = defineStore("user", {
 						if (friend.status === 1) {
 							friend.latestNews = '好友已经上线可以开始聊天了';
 							friend.messages.push({
-								receiveUid: friend.uid,
+								receiveAvatar: friend.avatar,
 								type: 'friend',
 								message: '好友已经上线可以开始聊天了'
 							});
@@ -260,7 +263,7 @@ export const useUser = defineStore("user", {
 						friend.unreadMessagesCount++;
 						friend.latestNews = '好友已经上线可以开始聊天了';
 						friend.messages.push({
-							receiveUid: friend.uid,
+							receiveAvatar: friend.avatar,
 							type: 'friend',
 							message: '好友已经上线可以开始聊天了'
 						});
