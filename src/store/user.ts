@@ -69,20 +69,20 @@ export const useUser = defineStore("user", {
 								this.friendsListInfo[findIndex].unreadMessagesCount=0;
 								this.friendsInfo.latestNews = data.messages
 								this.friendsInfo.messages.push({
-									receiveAvatar: data.messages[findIndex].avatar,
+									sendAvatar: data.sendAvatar,
 									type: 'friend', // 消息类型
 									message: data.messages// 消息内容
 								})
-								console.log(data.messages[findIndex].messages.receiveAvatar)
+
 							}else {
 								this.friendsListInfo[findIndex].latestNews = data.messages
 								this.friendsListInfo[findIndex].unreadMessagesCount++;
 								this.friendsListInfo[findIndex].messages.push({
-									receiveAvatar: data.messages[findIndex].avatar,
+									sendAvatar: data.messages[findIndex].avatar,
 									type: 'friend', // 消息类型
 									message: data.messages// 消息内容
 								})
-								console.log(data.messages[findIndex].messages.receiveAvatar)
+
 							}
 
 						}
@@ -224,7 +224,7 @@ export const useUser = defineStore("user", {
 
 							friend.latestNews = '好友已经上线可以开始聊天了';
 							friend.messages.push({
-								receiveAvatar: friend.avatar,
+								sendAvatar: friend.avatar,
 								type: 'friend',
 								message: '好友已经上线可以开始聊天了'
 							});
@@ -238,7 +238,7 @@ export const useUser = defineStore("user", {
 						if (friend.status === 1) {
 							friend.latestNews = '好友已经上线可以开始聊天了';
 							friend.messages.push({
-								receiveAvatar: friend.avatar,
+								sendAvatar: friend.avatar,
 								type: 'friend',
 								message: '好友已经上线可以开始聊天了'
 							});
@@ -263,7 +263,7 @@ export const useUser = defineStore("user", {
 						friend.unreadMessagesCount++;
 						friend.latestNews = '好友已经上线可以开始聊天了';
 						friend.messages.push({
-							receiveAvatar: friend.avatar,
+							sendAvatar: friend.avatar,
 							type: 'friend',
 							message: '好友已经上线可以开始聊天了'
 						});
@@ -289,6 +289,7 @@ export const useUser = defineStore("user", {
 				type: "messages",
 				sendUid: this.uid,
 				receiveUid: this.friendsInfo.uid,
+				sendAvatar: this.avatar,
 				messages: receiveMessage
 			}
 			this.webSocketInstance.send(JSON.stringify(message))

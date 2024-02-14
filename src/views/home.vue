@@ -78,7 +78,7 @@
                 <div v-for="(message,index) in friendsInfo.messages" :key="index">
                   <div v-if="message.type === 'friend'" class="left">
                     <div class="left-avatar">
-                      <img alt="" :src=message.receiveAvatar @click="console.log(message)">
+                      <img alt="" :src=message.sendAvatar>
                     </div>
                     <div class="left-message">
                       {{ message.message }}
