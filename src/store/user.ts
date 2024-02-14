@@ -24,7 +24,18 @@ export const useUser = defineStore("user", {
 		async initUser(uid:string,nickname: string,avatar:string,jtime:string){
 			this.uid = uid
 			this.avatar = avatar
-			this.jointime = jtime
+
+			const date = new Date(jtime*1);
+
+			// 使用 Date 对象提供的方法获取年、月、日、小时、分钟和秒
+			const year = date.getFullYear();
+			const month = ('0' + (date.getMonth() + 1)).slice(-2); // 注意：月份从0开始，需要加1
+			const day = ('0' + date.getDate()).slice(-2);
+
+
+
+
+			this.jointime = date.toLocaleDateString()
 			// 设置用户昵称
 			this.nickname = nickname
 		},
@@ -43,7 +54,18 @@ export const useUser = defineStore("user", {
 				}
 				this.uid = uid
 				this.avatar = avatar
-				this.jointime = jtime
+
+				const date = new Date(jtime*1);
+
+				// 使用 Date 对象提供的方法获取年、月、日、小时、分钟和秒
+				const year = date.getFullYear();
+				const month = ('0' + (date.getMonth() + 1)).slice(-2); // 注意：月份从0开始，需要加1
+				const day = ('0' + date.getDate()).slice(-2);
+
+
+
+
+				this.jointime = date.toLocaleDateString()
 				// 设置用户昵称
 				this.nickname = nickname
 				// 建立WebSocket全双工通信链接

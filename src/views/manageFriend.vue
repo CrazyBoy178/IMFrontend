@@ -41,8 +41,8 @@
           <div class="title">
             <h1>好友管理</h1>
             <div class="button">
-              <el-button type="primary">添加好友</el-button>
-              <el-button type="success">创建群聊</el-button>
+              <el-button type="primary" @click="add">添加好友</el-button>
+              <el-button type="success" @click="">创建群聊</el-button>
             </div>
           </div>
 
@@ -82,7 +82,15 @@
         </div>
       </el-col>
     </el-row>
+    <el-dialog v-model="dialogFormVisible2"  title="添加好友" :before-close="handleClose">
 
+      <template #footer>
+      <span class="dialog-footer">
+        <el-button  @click="reset">取消</el-button >
+        <el-button  @click="submitFriends">添加</el-button>
+      </span>
+      </template>
+    </el-dialog>
     <el-dialog
         v-model="confirm"
         title="提示"
@@ -170,7 +178,28 @@ const search = ref('')
 const imageUrl = ref('')
 
 let dialogFormVisible = ref(false)
+let dialogFormVisible2 = ref(false)
+let dialogFormVisible3 = ref(false)
 let confirm = ref(false)
+
+const submitFriends = async() => {
+  friendForm.value.userId = userStore.uid;
+  friendForm.value.friendId = search.value;
+
+  const response = await axios.post('http://localhost:8080/friend/add', friendForm.value);
+  if (response.data===200){
+    alert('添加成功');
+  }else if(response.data===201){
+    alert('添加失败 好友信息不存在')
+  }else if(response.data===203){
+    alert('添加失败不要重复添加');
+  }else{
+    alert('添加失败');
+  }
+}
+function add(){
+  dialogFormVisible2.value = true;
+}
 
 
 
@@ -256,13 +285,15 @@ const rules = {
 const handleClose = (done: () => void) => {
   reset()
   done()
-
 }
 
 const reset=()=>{
   dialogFormVisible.value = false
+  dialogFormVisible2.value = false
+  dialogFormVisible3.value = false
   form.value.nickname = userStore.nickname;
   regForm.value.resetFields();
+
   modify.value=false
   imageUrl.value = null
   confirm.value = false
