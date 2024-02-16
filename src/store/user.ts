@@ -32,9 +32,6 @@ export const useUser = defineStore("user", {
 			const month = ('0' + (date.getMonth() + 1)).slice(-2); // 注意：月份从0开始，需要加1
 			const day = ('0' + date.getDate()).slice(-2);
 
-
-
-
 			this.jointime = date.toLocaleDateString()
 			// 设置用户昵称
 			this.nickname = nickname

@@ -300,13 +300,10 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 }
 
 
-const friendListLoadInfiniteScroll = () => {
+const friendListLoadInfiniteScroll = () => {}
 
-}
+const chatLoadInfiniteScroll = () => {}
 
-const chatLoadInfiniteScroll = () => {
-
-}
 const message = ref('')
 
 let modify = ref(false)
@@ -332,17 +329,13 @@ const submit = async () => {
     const resp = await axios.post(`http://localhost:8080/user/modify`,form.value);
 
     await getInfo(resp.data);
+    window.location.reload();
 
   } catch (error) {
     alert('Failed to submit');
   }
   reset()
 }
-
-const friendForm = ref({
-  userId:'',
-  friendId: '',
-});
 
 async function getInfo(value:any) {
   localStorage.setItem('token',value)

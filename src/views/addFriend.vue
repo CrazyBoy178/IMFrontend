@@ -309,7 +309,10 @@ const beforesubmit = async () => {
 
 const submit = async () => {
   try {
-    await axios.post(`http://localhost:8080/user/modify`,form.value);
+    const resp = await axios.post(`http://localhost:8080/user/modify`,form.value);
+
+    await getInfo(resp.data);
+    window.location.reload();
   } catch (error) {
     alert('Failed to submit');
   }

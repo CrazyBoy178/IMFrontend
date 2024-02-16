@@ -83,7 +83,7 @@
       </el-col>
     </el-row>
     <el-dialog v-model="dialogFormVisible2"  title="添加好友" :before-close="handleClose">
-
+      <el-input v-model="search1" placeholder="请输入好友账号" ></el-input>
       <template #footer>
       <span class="dialog-footer">
         <el-button  @click="reset">取消</el-button >
@@ -175,6 +175,7 @@ const network = reactive(useNetwork())
 const {isOnline} = toRefs(network)
 
 const search = ref('')
+const search1 = ref('')
 const imageUrl = ref('')
 
 let dialogFormVisible = ref(false)
@@ -183,12 +184,19 @@ let dialogFormVisible3 = ref(false)
 let confirm = ref(false)
 
 const submitFriends = async() => {
-  friendForm.value.userId = userStore.uid;
-  friendForm.value.friendId = search.value;
-
+  friendForm.value.userid = userStore.uid;
+  console.log(userStore.uid)
+  friendForm.value.friendid = search1.value;
+  console.log(search1.value)
+  if(search1.value===''){
+    alert("请输入信息")
+    return
+  }
   const response = await axios.post('http://localhost:8080/friend/add', friendForm.value);
   if (response.data===200){
     alert('添加成功');
+    window.location.reload();
+
   }else if(response.data===201){
     alert('添加失败 好友信息不存在')
   }else if(response.data===203){
@@ -200,9 +208,6 @@ const submitFriends = async() => {
 function add(){
   dialogFormVisible2.value = true;
 }
-
-
-
 
 interface User {
   friendId: string
@@ -283,6 +288,7 @@ const rules = {
 };
 
 const handleClose = (done: () => void) => {
+  search1.value = ''
   reset()
   done()
 }
@@ -293,6 +299,8 @@ const reset=()=>{
   dialogFormVisible3.value = false
   form.value.nickname = userStore.nickname;
   regForm.value.resetFields();
+
+
 
   modify.value=false
   imageUrl.value = null
@@ -340,7 +348,11 @@ const beforesubmit = async () => {
 
 const submit = async () => {
   try {
-    await axios.post(`http://localhost:8080/user/modify`,form.value);
+    const resp = await axios.post(`http://localhost:8080/user/modify`,form.value);
+
+    await getInfo(resp.data);
+    window.location.reload();
+
   } catch (error) {
     alert('Failed to submit');
   }
@@ -348,8 +360,8 @@ const submit = async () => {
 }
 
 const friendForm = ref({
-  userId:'',
-  friendId: '',
+  userid:'',
+  friendid: '',
 });
 
 async function getInfo(value:any) {
@@ -357,10 +369,11 @@ async function getInfo(value:any) {
   try {
     const dectoken = await axios.post('http://localhost:8080/token/decodeToken', localStorage.getItem('token'));
     const info = dectoken.data;
+    await userStore.initUser(info.uid, info.nickname, info.avatar, info.jtime)
     form.value.uid = info.uid
     form.value.nickname = info.nickname
 
-    await userStore.initUser(info.uid, info.nickname, info.avatar, info.jtime)
+
 
   } catch (error) {
     console.error('token请求失败', error);
