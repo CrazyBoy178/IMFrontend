@@ -22,7 +22,7 @@
             </div>
             <div class="option">
               <el-icon >
-                <WalletFilled/>
+                <HomeFilled />
               </el-icon>
             </div>
             <div class="settings" @click="dialogFormVisible = true">
@@ -140,7 +140,17 @@
 
 
 <script lang="ts" setup>
-import {Avatar, CirclePlusFilled, Comment, Folder, Search, Tools, WalletFilled,Plus} from "@element-plus/icons-vue";
+import {
+  Avatar,
+  CirclePlusFilled,
+  Comment,
+  Folder,
+  Search,
+  Tools,
+  WalletFilled,
+  Plus,
+  CirclePlus, HomeFilled
+} from "@element-plus/icons-vue";
 import {onMounted, reactive, ref, toRefs, computed} from 'vue'
 import {useNetwork} from '@vueuse/core'
 import {useUser} from '../store/user';
@@ -268,18 +278,21 @@ const reset=()=>{
   confirm.value = false
 }
 
-const handleAvatarSuccess: UploadProps['onSuccess'] = (
+const handleAvatarSuccess: UploadProps['onSuccess'] = async (
     response,
     uploadFile
 ) => {
   imageUrl.value = URL.createObjectURL(uploadFile.raw!)
-  try{
-    axios.post("http://localhost:8080/file/change",{
+  try {
+    const resp = await axios.post("http://localhost:8080/file/change", {
       uid: userStore.uid,
-      avatar:response
+      avatar: response
     })
+    await getInfo(resp.data)
     alert('头像修改成功')
-  }catch{
+    window.location.reload()
+
+  } catch {
     alert('修改失败')
   }
 }

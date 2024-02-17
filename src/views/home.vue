@@ -22,7 +22,7 @@
             </div>
             <div class="option">
               <el-icon @click="toAddFriend()">
-                <WalletFilled/>
+                <HomeFilled />
               </el-icon>
             </div>
             <div class="settings" @click="dialogFormVisible = true">
@@ -169,7 +169,17 @@
 
 
 <script lang="ts" setup>
-import {Avatar, CirclePlusFilled, Comment, Folder, Search, Tools, WalletFilled,Plus} from "@element-plus/icons-vue";
+import {
+  Avatar,
+  CirclePlusFilled,
+  Comment,
+  Folder,
+  Search,
+  Tools,
+  WalletFilled,
+  Plus,
+  CirclePlus, HomeFilled
+} from "@element-plus/icons-vue";
 import {onMounted, reactive, Ref, ref, toRefs} from 'vue'
 import {useNetwork} from '@vueuse/core'
 import {useUser} from '../store/user';
@@ -282,6 +292,7 @@ const handleAvatarSuccess: UploadProps['onSuccess'] = async (
     })
     await getInfo(resp.data)
     alert('头像修改成功')
+    window.location.reload()
 
   } catch {
     alert('修改失败')

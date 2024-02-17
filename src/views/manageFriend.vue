@@ -22,7 +22,7 @@
             </div>
             <div class="option">
               <el-icon @click="toAddFriend()">
-                <WalletFilled/>
+                <HomeFilled />
               </el-icon>
             </div>
             <div class="settings" @click="dialogFormVisible = true">
@@ -42,7 +42,7 @@
             <h1>好友管理</h1>
             <div class="button">
               <el-button type="primary" @click="add">添加好友</el-button>
-              <el-button type="success" @click="">创建群聊</el-button>
+              <el-button type="success" @click="addgroupchat">创建群聊</el-button>
             </div>
           </div>
 
@@ -87,10 +87,21 @@
       <template #footer>
       <span class="dialog-footer">
         <el-button  @click="reset">取消</el-button >
-        <el-button  @click="submitFriends">添加</el-button>
+        <el-button  type="success" @click="submitFriends">添加</el-button>
       </span>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="dialogFormVisible3"  title="创建群聊" :before-close="handleClose">
+
+      <template #footer>
+      <span class="dialog-footer">
+        <el-button  @click="reset">取消</el-button >
+        <el-button type="success" @click="submitGroup">创建</el-button>
+      </span>
+      </template>
+    </el-dialog>
+
     <el-dialog
         v-model="confirm"
         title="提示"
@@ -152,7 +163,17 @@
 
 
 <script lang="ts" setup>
-import {Avatar, CirclePlusFilled, Comment, Folder, Search, Tools, WalletFilled,Plus} from "@element-plus/icons-vue";
+import {
+  Avatar,
+  CirclePlusFilled,
+  Comment,
+  Folder,
+  Search,
+  Tools,
+  WalletFilled,
+  Plus,
+  CirclePlus, HomeFilled
+} from "@element-plus/icons-vue";
 import {onMounted, reactive, ref, toRefs, computed} from 'vue'
 import {useNetwork} from '@vueuse/core'
 import {useUser} from '../store/user';
@@ -205,8 +226,17 @@ const submitFriends = async() => {
     alert('添加失败');
   }
 }
+
+const submitGroup = async() => {
+
+}
+
 function add(){
   dialogFormVisible2.value = true;
+}
+
+function addgroupchat(){
+  dialogFormVisible3.value = true;
 }
 
 interface User {
@@ -293,6 +323,8 @@ const handleClose = (done: () => void) => {
   done()
 }
 
+
+
 const reset=()=>{
   dialogFormVisible.value = false
   dialogFormVisible2.value = false
@@ -307,18 +339,21 @@ const reset=()=>{
   confirm.value = false
 }
 
-const handleAvatarSuccess: UploadProps['onSuccess'] = (
+const handleAvatarSuccess: UploadProps['onSuccess'] = async (
     response,
     uploadFile
 ) => {
   imageUrl.value = URL.createObjectURL(uploadFile.raw!)
-  try{
-    axios.post("http://localhost:8080/file/change",{
+  try {
+    const resp = await axios.post("http://localhost:8080/file/change", {
       uid: userStore.uid,
-      avatar:response
+      avatar: response
     })
+    await getInfo(resp.data)
     alert('头像修改成功')
-  }catch{
+    window.location.reload()
+
+  } catch {
     alert('修改失败')
   }
 }
