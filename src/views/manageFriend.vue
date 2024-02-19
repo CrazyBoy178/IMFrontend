@@ -64,8 +64,11 @@
                   <el-button
                       type="danger"
                       @click="handleDelete(scope.$index, scope.row)"
-                  >删除</el-button
-                  >
+                  >删除</el-button>
+                  <el-button
+                      type="danger"
+                      @click="handleDownload(scope.$index, scope.row)"
+                  >下载聊天记录</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -246,18 +249,6 @@ let group = ref([])
 let groupForm = ref({})
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 const submitFriends = async() => {
   friendForm.value.userid = userStore.uid;
   console.log(userStore.uid)
@@ -309,6 +300,11 @@ let rowFriendId = ref<String>('')
 const handleDelete = (index: number, row: User) => {
   confirm.value = true;
   rowFriendId.value = row.friendId;
+}
+
+const handleDownload = (index: number, row: User) => {
+  
+
 }
 
 
