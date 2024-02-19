@@ -43,6 +43,7 @@
             <div class="button">
               <el-button type="primary" @click="add">添加好友</el-button>
               <el-button type="success" @click="addgroupchat">创建群聊</el-button>
+              <el-button type="primary" @click="test">创建群聊</el-button>
             </div>
           </div>
 
@@ -93,7 +94,13 @@
     </el-dialog>
 
     <el-dialog v-model="dialogFormVisible3"  title="创建群聊" :before-close="handleClose">
-
+      <el-transfer
+          v-model="group"
+          filter-placeholder="请输入好友账号"
+          filterable
+          :filter-method="filterMethod"
+          :data="groupdata"
+      />
       <template #footer>
       <span class="dialog-footer">
         <el-button  @click="reset">取消</el-button >
@@ -165,14 +172,10 @@
 <script lang="ts" setup>
 import {
   Avatar,
-  CirclePlusFilled,
   Comment,
-  Folder,
-  Search,
   Tools,
-  WalletFilled,
   Plus,
-  CirclePlus, HomeFilled
+  HomeFilled
 } from "@element-plus/icons-vue";
 import {onMounted, reactive, ref, toRefs, computed} from 'vue'
 import {useNetwork} from '@vueuse/core'
@@ -204,6 +207,57 @@ let dialogFormVisible2 = ref(false)
 let dialogFormVisible3 = ref(false)
 let confirm = ref(false)
 
+interface Option {
+  key:number
+  label:string
+}
+
+
+const test = async () => {
+  const resp = await axios.get(`http://localhost:8080/user/getUsers?uid=${uid.value}`)
+  console.log(resp.data)
+}
+const generateData = async () => {
+  const resp = await axios.get(`http://localhost:8080/user/getUsers?uid=${uid.value}`)
+  console.log(resp.data)
+
+  const data: Option[] = []
+  const states = resp.data
+
+  states.forEach((user, index) => {
+    data.push({
+      label: user,
+      key: index,
+
+    })
+  })
+  return data
+}
+
+const filterMethod = (query, item) => {
+  if (item && item.label) {
+    return item.label.toLowerCase().includes(query.toLowerCase());
+  }
+  return false;
+}
+let groupdata = ref<Option[]>()
+let group = ref([])
+
+let groupForm = ref({})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const submitFriends = async() => {
   friendForm.value.userid = userStore.uid;
   console.log(userStore.uid)
@@ -228,15 +282,19 @@ const submitFriends = async() => {
 }
 
 const submitGroup = async() => {
-
+  dialogFormVisible3.value = false
+  console.log(group)
 }
 
 function add(){
   dialogFormVisible2.value = true;
 }
 
-function addgroupchat(){
+async function addgroupchat(){
   dialogFormVisible3.value = true;
+  groupdata.value = await generateData()
+  console.log(groupdata.value)
+  console.log(group.value)
 }
 
 interface User {
@@ -330,10 +388,9 @@ const reset=()=>{
   dialogFormVisible2.value = false
   dialogFormVisible3.value = false
   form.value.nickname = userStore.nickname;
-  regForm.value.resetFields();
-
-
-
+  if (regForm.value !== null) { // 检查目标对象是否存在
+    regForm.value.resetFields();
+  }
   modify.value=false
   imageUrl.value = null
   confirm.value = false
@@ -383,6 +440,10 @@ const beforesubmit = async () => {
 
 const submit = async () => {
   try {
+    if(form.value.nickname===''){
+      alert('请输入完整的信息')
+      return
+    }
     const resp = await axios.post(`http://localhost:8080/user/modify`,form.value);
 
     await getInfo(resp.data);
@@ -407,6 +468,7 @@ async function getInfo(value:any) {
     await userStore.initUser(info.uid, info.nickname, info.avatar, info.jtime)
     form.value.uid = info.uid
     form.value.nickname = info.nickname
+    console.log(uid.value)
 
 
 
