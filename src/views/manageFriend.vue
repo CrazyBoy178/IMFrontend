@@ -66,9 +66,9 @@
                       @click="handleDelete(scope.$index, scope.row)"
                   >删除</el-button>
                   <el-button
-                      type="danger"
+                      type="primary"
                       @click="handleDownload(scope.$index, scope.row)"
-                  >下载聊天记录</el-button>
+                  >下载记录</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -173,20 +173,14 @@
 
 
 <script lang="ts" setup>
-import {
-  Avatar,
-  Comment,
-  Tools,
-  Plus,
-  HomeFilled
-} from "@element-plus/icons-vue";
-import {onMounted, reactive, ref, toRefs, computed} from 'vue'
+import {Avatar, Comment, HomeFilled, Plus, Tools} from "@element-plus/icons-vue";
+import {computed, onMounted, reactive, ref, toRefs} from 'vue'
 import {useNetwork} from '@vueuse/core'
 import {useUser} from '../store/user';
 import {storeToRefs} from 'pinia'
 import axios from "axios";
-import type { UploadProps } from 'element-plus'
-import { ElMessage } from 'element-plus'
+import type {UploadProps} from 'element-plus'
+import {ElMessage} from 'element-plus'
 import router from "@/router";
 
 const userStore = useUser()
@@ -302,9 +296,33 @@ const handleDelete = (index: number, row: User) => {
   rowFriendId.value = row.friendId;
 }
 
-const handleDownload = (index: number, row: User) => {
-  
+const handleDownload = async (index: number, row: User) => {
+  try {
+    // 发起 HTTP GET 请求获取文件路径
+    const response = await axios.get(`http://localhost:8080/msgInfo/${uid.value}/${row.friendId}`);
+    const filePath: string = response.data;
 
+    // 发起 HTTP POST 请求下载文件
+    const resp = await axios.get(`http://localhost:8080/msgInfo/download?filePath=${encodeURIComponent(filePath)}`, {
+      responseType: 'blob' // 告诉 axios 服务器返回的数据类型是 Blob
+    });
+
+    // 将文件内容转换为 Blob 对象
+    const blob = new Blob([resp.data]);
+
+    // 创建一个虚拟的<a>标签
+    const downloadLink = document.createElement('a');
+    downloadLink.href = window.URL.createObjectURL(blob);
+
+    // 从文件路径中提取文件名作为下载文件的文件名
+    downloadLink.download = filePath.substring(filePath.lastIndexOf('/') + 1);
+
+    // 模拟点击链接来下载文件
+    downloadLink.click();
+  } catch (error) {
+    console.error('下载文件时出错:', error);
+    alert("消息为空")
+  }
 }
 
 
