@@ -26,7 +26,7 @@
               </el-icon>
             </div>
             <div class="option">
-              <el-icon @click="toManageGroup()">
+              <el-icon>
                 <MessageBox />
               </el-icon>
             </div>
@@ -44,32 +44,29 @@
 
         <div class="container">
           <div class="title">
-            <h1>好友管理</h1>
-            <div class="button">
-              <el-button type="primary" @click="add">添加好友</el-button>
-              <el-button type="success" @click="addgroupchat">创建群聊</el-button>
-              <el-button type="primary" @click="addgroup">加入群聊</el-button>
-            </div>
+            <h1>群聊管理</h1>
           </div>
-
           <div class="table">
             <el-table :data="filterTableData" style="width: 100%">
-              <el-table-column label="账号" prop="friendId" />
-              <el-table-column label="昵称" prop="friendnickname" />
-              <el-table-column label="头像" align="center" >
-                <template #default="{ row }">
-                  <el-avatar :src="row.friendAvatar" shape="square" style="width: 38px; height: 38px;" />
-                </template>
-              </el-table-column>
+              <el-table-column label="群聊ID" prop="groupId" />
+              <el-table-column label="群聊名称" prop="groupName" />
+              <el-table-column label="创建者" prop="groupOwner" />
+              <el-table-column label="群聊成员" prop="groupMember" />
+
               <el-table-column align="right">
                 <template #header>
-                  <el-input v-model="search" size="small" placeholder="搜索好友" />
+                  <el-input v-model="search" size="small" placeholder="搜索群聊" />
                 </template>
                 <template #default="scope">
-                  <el-button
+
+                  <el-button v-show="scope.row.groupOwner===userStore.uid"
                       type="danger"
                       @click="handleDelete(scope.$index, scope.row)"
-                  >删除</el-button>
+                  >删除群聊</el-button>
+                  <el-button v-show="scope.row.groupOwner!==userStore.uid"
+                    type="danger"
+                    @click="handleDelete1(scope.$index, scope.row)"
+                >退出群聊</el-button>
                   <el-button
                       type="primary"
                       @click="handleDownload(scope.$index, scope.row)"
@@ -91,42 +88,6 @@
         </div>
       </el-col>
     </el-row>
-    <el-dialog v-model="dialogFormVisible2"  title="添加好友" :before-close="handleClose">
-      <el-input v-model="search1" placeholder="请输入好友账号" ></el-input>
-      <template #footer>
-      <span class="dialog-footer">
-        <el-button  @click="reset">取消</el-button >
-        <el-button  type="success" @click="submitFriends">添加</el-button>
-      </span>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="dialogFormVisible4"  title="加入群聊" :before-close="handleClose">
-      <el-input v-model="search2" placeholder="请输入群聊号" ></el-input>
-      <template #footer>
-      <span class="dialog-footer">
-        <el-button  @click="reset">取消</el-button >
-        <el-button  type="success" @click="submitGroups">添加</el-button>
-      </span>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="dialogFormVisible3"  title="创建群聊" :before-close="handleClose">
-      <el-input v-model="groupname" placeholder="请输入群聊名称" style="padding: 10px"> </el-input>
-      <el-transfer
-          v-model="group"
-          filter-placeholder="请输入好友账号"
-          filterable
-          :filter-method="filterMethod"
-          :data="groupdata"
-      />
-      <template #footer>
-      <span class="dialog-footer">
-        <el-button  @click="reset">取消</el-button >
-        <el-button type="success" @click="submitGroup">创建</el-button>
-      </span>
-      </template>
-    </el-dialog>
 
     <el-dialog
         v-model="confirm"
@@ -137,7 +98,23 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="confirm= false">取消</el-button>
-          <el-button type="danger" @click="handleConfirm(rowFriendId)">
+          <el-button type="danger" @click="handleConfirm(rowGroupId)">
+            确认
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+        v-model="confirm1"
+        title="提示"
+        width="500"
+    >
+      <span>确认退出吗?</span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="confirm1= false">取消</el-button>
+          <el-button type="danger" @click="handleConfirm1(rowGroupId)">
             确认
           </el-button>
         </div>
@@ -222,147 +199,35 @@ let dialogFormVisible2 = ref(false)
 let dialogFormVisible3 = ref(false)
 let dialogFormVisible4 = ref(false)
 let confirm = ref(false)
+let confirm1 = ref(false)
 
-interface Option {
-  key:number
-  label:string
+
+
+interface GroupInfo {
+  groupId:string
+  groupName:string
+  roupOwner:string
+  groupMember:string
 }
+const friendInfo = ref<GroupInfo[]>([]);
 
+let rowGroupId = ref<String>('')
 
-const generateData = async () => {
-  const resp = await axios.get(`http://localhost:8080/user/getUsers?uid=${uid.value}`)
-  console.log(resp.data)
-
-  const data: Option[] = []
-  const states = resp.data
-
-  states.forEach((user, index) => {
-    data.push({
-      label: user,
-      key: user,
-
-    })
-  })
-  return data
-}
-
-const filterMethod = (query, item) => {
-  if (item && item.label) {
-    return item.label.toLowerCase().includes(query.toLowerCase());
-  }
-  return false;
-}
-let groupdata = ref<Option[]>()
-let group = ref([])
-
-let groupForm = ref({})
-
-
-const submitFriends = async() => {
-  friendForm.value.userid = userStore.uid;
-  console.log(userStore.uid)
-  friendForm.value.friendid = search1.value;
-  console.log(search1.value)
-  if(search1.value===''){
-    alert("请输入信息")
-    return
-  }
-  const response = await axios.post('http://localhost:8080/friend/add', friendForm.value);
-  if (response.data===200){
-    alert('添加成功');
-    window.location.reload();
-
-  }else if(response.data===201){
-    alert('添加失败 好友信息不存在')
-  }else if(response.data===203){
-    alert('添加失败不要重复添加');
-  }else{
-    alert('添加失败');
-  }
-}
-
-const submitGroups = async() => {
-  const response = await axios.get(`http://localhost:8080/group/getGroup?group_id=${search2.value}`);
-  if(response.data !==null){
-    const response = await axios.get(`http://localhost:8080/group/add/${userStore.uid}/${search2.value}`);
-    console.log(response.data);
-    if(response.data===200){
-      alert("添加成功")
-      window.location.reload();
-    }else if(response.data===202){
-      alert("不能添加自己的群聊")
-    }else if(response.data===203){
-      alert("请不要重复添加")
-    }
-  }else{
-    alert("群聊不存在");
-  }
-
-}
-
-
-const submitGroup = async() => {
-  dialogFormVisible3.value = false
-  if(groupname.value===''){
-    alert('请输入群聊名称')
-    return
-  }
-  if(group.value.length<2){
-    alert('请选择正确的群聊信息(至少三人)')
-    return
-  }
-  const groupInfo = ref({
-    groupName: groupname.value,
-    groupOwner: userStore.uid,
-    groupMember: group.value.join(','), // 成员数组
-  })
-  console.log(groupInfo.value)
-  try {
-    const response = await axios.post('http://localhost:8080/group/addgroup', groupInfo.value)
-    console.log(response.data); // 处理服务器响应
-    alert("创建成功")
-    window.location.reload();
-  } catch (error) {
-    console.error('Error:', error);
-    alert("创建失败"+error)
-    throw error; // 抛出异常
-  }
-}
-
-function add(){
-  dialogFormVisible2.value = true;
-}
-
-async function addgroupchat(){
-  dialogFormVisible3.value = true;
-  groupdata.value = await generateData()
-
-}
-
-async function addgroup(){
-  dialogFormVisible4.value = true;
-
-
-}
-
-interface User {
-  friendId: string
-  friendnickname: string
-  friendAvatar: string
-}
-const friendInfo = ref<User[]>([]);
-
-let rowFriendId = ref<String>('')
-
-const handleDelete = (index: number, row: User) => {
+const handleDelete = (index: number, row: GroupInfo) => {
   confirm.value = true;
-  rowFriendId.value = row.friendId;
+  rowGroupId.value = row.groupId;
+  console.log(row.groupId)
+}
+
+const handleDelete1 = (index: number, row: GroupInfo) => {
+  confirm1.value = true;
+  rowGroupId.value = row.groupId;
 }
 
 const handleDownload = async (index: number, row: User) => {
   try {
     // 发起 HTTP GET 请求获取文件路径
-    const response = await axios.get(`http://localhost:8080/msgInfo/${uid.value}/${row.friendId}`);
+    const response = await axios.get(`http://localhost:8080/msgInfo/${uid.value}/${row.GroupId}`);
     const filePath: string = response.data;
 
     // 发起 HTTP POST 请求下载文件
@@ -392,17 +257,28 @@ const handleDownload = async (index: number, row: User) => {
 async function handleConfirm(value) {
   console.log(value);
   try {
-    await axios.post("http://localhost:8080/friend/remove", {
-      userid: userStore.uid,
-      friendid: value
-    });
+    await axios.get(`http://localhost:8080/group/delete/${userStore.uid}/${value}`);
     console.log('删除成功');
     console.log(currentPage1);
 
 
-    await fetchFriends(userStore.uid, currentPage1.value);
+    await fetchGroups(userStore.uid, currentPage1.value);
 
     confirm.value = false;
+  } catch (error) {
+    console.error('删除失败', error);
+    alert('删除失败');
+  }
+}
+
+async function handleConfirm1(value) {
+  console.log(value);
+  try {
+    await axios.get(`http://localhost:8080/group/deletegroup/${userStore.uid}/${value}`);
+    console.log('删除成功');
+    console.log(currentPage1);
+    await fetchGroups(userStore.uid, currentPage1.value);
+    confirm1.value = false;
   } catch (error) {
     console.error('删除失败', error);
     alert('删除失败');
@@ -414,13 +290,13 @@ const filterTableData = computed(() =>
     friendInfo.value.filter(
         (data) =>
             !search.value ||
-            data.friendnickname.toLowerCase().includes(search.value.toLowerCase())
+            data.group_name.toLowerCase().includes(search.value.toLowerCase())
     )
 )
 
 function handleCurrentPageChange(newPage) {
   currentPage1 = newPage;
-  fetchFriends(userStore.uid,currentPage1);
+  fetchGroups(userStore.uid,currentPage1);
 }
 
 const form = ref({
@@ -562,12 +438,12 @@ async function getInfo(value:any) {
 
 onMounted(async () => {
   await getInfo(localStorage.getItem('token'));
-  await fetchFriends(userStore.uid,currentPage1.value);
+  await fetchGroups(userStore.uid,currentPage1.value);
 });
-const fetchFriends = async (uid,page)=>{
+const fetchGroups = async (uid, page)=>{
   try {
-    const response = await axios.get(`http://localhost:8080/friend/find/${uid}/page/${page}`);
-    const count = await axios.get(`http://localhost:8080/friend/count/${uid}`);
+    const response = await axios.get(`http://localhost:8080/group/getAllGroup/${uid}/page/${page}`);
+    const count = await axios.get(`http://localhost:8080/group/getAllGroup/${uid}`);
     console.log(response.data)
     friendInfo.value = response.data
     total.value = count.data
@@ -585,10 +461,6 @@ function toHomePage() {
 
 function toAddFriend (){
   router.push('/addFriend')
-}
-
-function toManageGroup(){
-  router.push('/manageGroup')
 }
 
 </script>
@@ -667,7 +539,7 @@ function toManageGroup(){
         border-right: 5px solid #303842;
       }
 
-      .option:hover, .option:nth-child(2) {
+      .option:hover, .option:nth-child(4) {
         cursor: pointer;
         color: #ecefff;
         background: #363F48;

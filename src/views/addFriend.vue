@@ -25,6 +25,12 @@
                 <HomeFilled />
               </el-icon>
             </div>
+            <div class="option">
+              <el-icon @click="toManageGroup()">
+                <MessageBox />
+              </el-icon>
+            </div>
+
             <div class="settings" @click="dialogFormVisible = true">
               <el-icon>
                 <Tools/>
@@ -149,7 +155,7 @@ import {
   Tools,
   WalletFilled,
   Plus,
-  CirclePlus, HomeFilled
+  CirclePlus, HomeFilled, MessageBox
 } from "@element-plus/icons-vue";
 import {onMounted, reactive, ref, toRefs, computed} from 'vue'
 import {useNetwork} from '@vueuse/core'
@@ -395,6 +401,10 @@ function toHomePage() {
 
 function toManageFriend (){
   router.push('/manageFriend')
+}
+
+function toManageGroup(){
+  router.push('/manageGroup')
 }
 
 </script>

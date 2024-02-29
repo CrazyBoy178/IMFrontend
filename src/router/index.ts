@@ -27,6 +27,12 @@ const routes: Array<RouteRecordRaw> = [
 		component: () => import('../views/addFriend.vue'),
 		meta: {requiresAuth: true}, // 设置路由元信息，标记需要登录
 	},
+	{
+		path: '/manageGroup',
+		name: 'manageGroup',
+		component: () => import('../views/manageGroup.vue'),
+		meta: {requiresAuth: true}, // 设置路由元信息，标记需要登录
+	},
 ]
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
