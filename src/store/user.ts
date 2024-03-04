@@ -12,6 +12,7 @@ export const useUser = defineStore("user", {
 		friendsInfo: {} as any,
 		// 好友列表 + 好友消息
 		friendsListInfo: [] as any,
+
 		// WebSocket 实例
 		webSocketInstance: null as any,
 

@@ -16,6 +16,12 @@ const routes: Array<RouteRecordRaw> = [
 		meta: {requiresAuth: true}, // 设置路由元信息，标记需要登录
 	},
 	{
+		path: '/group',
+		name: 'group',
+		component: () => import('../views/group.vue'),
+		meta: {requiresAuth: true}, // 设置路由元信息，标记需要登录
+	},
+	{
 		path: '/manageFriend',
 		name: 'manageFriend',
 		component: () => import('../views/manageFriend.vue'),

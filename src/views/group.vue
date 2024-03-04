@@ -11,12 +11,12 @@
 
           <div class="feature">
             <div class="option">
-              <el-icon>
+              <el-icon @click="toHomePage()">
                 <Comment/>
               </el-icon>
             </div>
             <div class="option">
-              <el-icon @click="toGroup()">
+              <el-icon >
                 <ChatSquare />
               </el-icon>
             </div>
@@ -397,8 +397,8 @@ const sendMessages = async () => {
   }
 }
 
-function toGroup(){
-  router.push('/group')
+function toHomePage() {
+  router.push('/home')
 }
 
 function toManageFriend (){
@@ -486,7 +486,7 @@ function toManageGroup(){
         border-right: 5px solid #303842;
       }
 
-      .option:hover, .option:nth-child(1) {
+      .option:hover, .option:nth-child(2) {
         cursor: pointer;
         color: #ecefff;
         background: #363F48;

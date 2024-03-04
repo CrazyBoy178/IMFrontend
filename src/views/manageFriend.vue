@@ -16,6 +16,11 @@
               </el-icon>
             </div>
             <div class="option">
+              <el-icon @click="toGroup()">
+                <ChatSquare />
+              </el-icon>
+            </div>
+            <div class="option">
               <el-icon>
                 <Avatar/>
               </el-icon>
@@ -189,7 +194,7 @@
 
 
 <script lang="ts" setup>
-import {Avatar, Comment, HomeFilled, MessageBox, Plus, Tools} from "@element-plus/icons-vue";
+import {Avatar, ChatSquare, Comment, HomeFilled, MessageBox, Plus, Tools} from "@element-plus/icons-vue";
 import {computed, onMounted, reactive, ref, toRefs} from 'vue'
 import {useNetwork} from '@vueuse/core'
 import {useUser} from '../store/user';
@@ -577,7 +582,9 @@ const fetchFriends = async (uid,page)=>{
   }
 }
 
-
+function toGroup(){
+  router.push('/group')
+}
 
 function toHomePage() {
   router.push('/home')
@@ -667,7 +674,7 @@ function toManageGroup(){
         border-right: 5px solid #303842;
       }
 
-      .option:hover, .option:nth-child(2) {
+      .option:hover, .option:nth-child(3) {
         cursor: pointer;
         color: #ecefff;
         background: #363F48;
