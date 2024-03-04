@@ -13,8 +13,14 @@ export const useUser = defineStore("user", {
 		// 好友列表 + 好友消息
 		friendsListInfo: [] as any,
 
+		groupInfo: {} as any,
+
+		groupListInfo:[] as any,
+
 		// WebSocket 实例
 		webSocketInstance: null as any,
+		groupwebSocketInstance: null as any,
+
 
 
 	}),
@@ -121,6 +127,71 @@ export const useUser = defineStore("user", {
 			})
 		},
 
+		async createGroupWebSocket(uid:string, groupId:string) {
+			// 验证是否存在实例 存在则先关闭
+			if (this.webSocketInstance) {
+				this.webSocketInstance.close();
+			}
+			return new Promise((resolve, reject) => {
+				if (!uid) {
+					reject('')
+					return
+				}
+				// 建立WebSocket全双工通信链接
+				this.groupwebSocketInstance = new WebSocket('ws://127.0.0.1:8080/chatroom/' +groupId + '/' + uid)
+
+				//<editor-fold desc="WebSocket事件监听">
+				// 监听WebSocket打开事件
+				this.groupwebSocketInstance.onopen = () => {
+					console.log('WebSocket is connected');
+					resolve(true)
+				};
+				// 监听WebSocket消息事件
+				this.groupwebSocketInstance.onmessage = (event: any) => {
+					// 接收消息转JSON对象
+					const data = JSON.parse(event.data)
+					console.log(data)
+					if (data.type === 'updateFriendsList') {
+						this.updateFriends(data)
+					} else if (data.type === 'messages') {
+						let findIndex = this.friendsListInfo.findIndex((object: any) => object.uid === data.sendUid);
+						if (findIndex !== -1) {
+							if (this.friendsListInfo[findIndex].uid === this.friendsInfo.uid){
+								this.friendsListInfo[findIndex].unreadMessagesCount=0;
+								this.friendsInfo.latestNews = data.messages
+								this.friendsInfo.messages.push({
+									sendAvatar: data.sendAvatar,
+									type: 'friend', // 消息类型
+									message: data.messages// 消息内容
+								})
+
+							}else {
+								this.friendsListInfo[findIndex].latestNews = data.messages
+								this.friendsListInfo[findIndex].unreadMessagesCount++;
+								this.friendsListInfo[findIndex].messages.push({
+									sendAvatar: data.messages[findIndex].avatar,
+									type: 'friend', // 消息类型
+									message: data.messages// 消息内容
+								})
+
+							}
+
+						}
+					}
+				};
+				// 监听WebSocket关闭事件
+				this.groupwebSocketInstance.onclose = () => {
+					console.log('WebSocket is disconnected');
+					resolve(false)
+				};
+				// 监听WebSocket异常事件
+				this.groupwebSocketInstance.onerror = (error: any) => {
+					console.error('WebSocket error:', error);
+					reject(error)
+				};
+			})
+		},
+
 		// 点击用户后将未读消息数清零
 		clearUnreadMessages(friend: any) {
 			friend.unreadMessagesCount = 0;
@@ -140,7 +211,6 @@ export const useUser = defineStore("user", {
 							latestNews: '',
 							messages: [],
 							unreadMessagesCount:0,
-
 						};
 
 						// 如果好友在线，则发送上线消息
