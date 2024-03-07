@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import axios from "axios";
 
 export const useUser = defineStore("user", {
 	// State 相当于组件中的 data属性
@@ -15,7 +16,7 @@ export const useUser = defineStore("user", {
 
 		groupInfo: {} as any,
 
-		groupListInfo:[] as any,
+		groupsListInfo:[] as any,
 
 		// WebSocket 实例
 		webSocketInstance: null as any,
@@ -127,10 +128,24 @@ export const useUser = defineStore("user", {
 			})
 		},
 
-		async createGroupWebSocket(uid:string, groupId:string) {
+		async createGroupWebSocket(uid:string,groupId:string,nickname: string,avatar:string,jtime:string) {
+			this.uid = uid
+			this.avatar = avatar
+
+			const date = new Date(jtime*1);
+			// 使用 Date 对象提供的方法获取年、月、日、小时、分钟和秒
+			const year = date.getFullYear();
+			const month = ('0' + (date.getMonth() + 1)).slice(-2); // 注意：月份从0开始，需要加1
+			const day = ('0' + date.getDate()).slice(-2);
+
+			this.jointime = date.toLocaleDateString()
+			// 设置用户昵称
+			this.nickname = nickname
+
+			const response = await axios.get('http://localhost:8080/group/getGroupName/' + groupId)
 			// 验证是否存在实例 存在则先关闭
-			if (this.webSocketInstance) {
-				this.webSocketInstance.close();
+			if (this.groupwebSocketInstance) {
+				this.groupwebSocketInstance.close();
 			}
 			return new Promise((resolve, reject) => {
 				if (!uid) {
@@ -138,64 +153,97 @@ export const useUser = defineStore("user", {
 					return
 				}
 				// 建立WebSocket全双工通信链接
-				this.groupwebSocketInstance = new WebSocket('ws://127.0.0.1:8080/chatroom/' +groupId + '/' + uid)
+				this.groupwebSocketInstance = new WebSocket('ws://127.0.0.1:8080/chatroom/' + uid + '/'+ groupId)
+
 
 				//<editor-fold desc="WebSocket事件监听">
 				// 监听WebSocket打开事件
 				this.groupwebSocketInstance.onopen = () => {
-					console.log('WebSocket is connected');
+					console.log('GroupWebSocket is connected');
+
+
+					let group = {
+						groupId:groupId,
+						groupName:response.data,
+						latestNews: '',
+						messages: [],
+						unreadMessagesCount:0,
+					}
+					console.log(group)
+
+					this.groupsListInfo.push(group)
+					this.groupInfo = group;
+
 					resolve(true)
 				};
+
 				// 监听WebSocket消息事件
 				this.groupwebSocketInstance.onmessage = (event: any) => {
 					// 接收消息转JSON对象
 					const data = JSON.parse(event.data)
 					console.log(data)
-					if (data.type === 'updateFriendsList') {
-						this.updateFriends(data)
-					} else if (data.type === 'messages') {
-						let findIndex = this.friendsListInfo.findIndex((object: any) => object.uid === data.sendUid);
-						if (findIndex !== -1) {
-							if (this.friendsListInfo[findIndex].uid === this.friendsInfo.uid){
-								this.friendsListInfo[findIndex].unreadMessagesCount=0;
-								this.friendsInfo.latestNews = data.messages
-								this.friendsInfo.messages.push({
-									sendAvatar: data.sendAvatar,
-									type: 'friend', // 消息类型
-									message: data.messages// 消息内容
-								})
 
-							}else {
-								this.friendsListInfo[findIndex].latestNews = data.messages
-								this.friendsListInfo[findIndex].unreadMessagesCount++;
-								this.friendsListInfo[findIndex].messages.push({
-									sendAvatar: data.messages[findIndex].avatar,
-									type: 'friend', // 消息类型
-									message: data.messages// 消息内容
-								})
+					let findIndex = this.groupsListInfo.findIndex((object: any) => object.groupId === data.receiveGroupId);
+					console.log(findIndex)
+					if (findIndex !== -1) {
 
-							}
+						if (this.groupsListInfo[findIndex].groupId === this.groupInfo.groupId){
+							this.groupsListInfo[findIndex].unreadMessagesCount=0;
+							this.groupInfo.latestNews = data.messages
+							this.groupInfo.messages.push({
+								sendAvatar: data.sendAvatar,
+								type: 'friend', // 消息类型
+								message: data.messages// 消息内容
+							})
+
+						}else {
+							this.groupsListInfo[findIndex].latestNews = data.messages
+							this.groupsListInfo[findIndex].unreadMessagesCount++;
+							this.groupsListInfo[findIndex].messages.push({
+								sendAvatar: data.messages[findIndex].avatar,
+								type: 'friend', // 消息类型
+								message: data.messages// 消息内容
+							})
 
 						}
+
 					}
+
 				};
 				// 监听WebSocket关闭事件
 				this.groupwebSocketInstance.onclose = () => {
-					console.log('WebSocket is disconnected');
+					console.log('GroupWebSocket is disconnected');
 					resolve(false)
 				};
 				// 监听WebSocket异常事件
 				this.groupwebSocketInstance.onerror = (error: any) => {
-					console.error('WebSocket error:', error);
+					console.error('GroupWebSocket error:', error);
 					reject(error)
 				};
 			})
+		},
+
+		sendOnlineMessageToGroup() {
+			// 构建上线消息
+			let onlineMessage = {
+				type: 'my',
+				message: '用户 ' + this.uid + ' 上线了！'
+			};
+			// 发送上线消息给群组中的所有成员
+			this.groupwebSocketInstance.send(JSON.stringify(onlineMessage));
 		},
 
 		// 点击用户后将未读消息数清零
 		clearUnreadMessages(friend: any) {
 			friend.unreadMessagesCount = 0;
 		},
+
+		clearUnreadGroupMessages(group: any) {
+			group.unreadMessagesCount = 0;
+		},
+
+
+
 
 		async updateFriends(data: any) {
 			if (this.friendsListInfo.length > 0) {
@@ -294,6 +342,29 @@ export const useUser = defineStore("user", {
 			}
 			this.friendsInfo.messages.push(addMessage)
 			this.friendsInfo.latestNews = receiveMessage
+			return true
+		},
+
+		async sendGroupMessages(receiveMessage: string) {
+			if (!this.groupInfo.groupId) {
+				return false
+			}
+			let message = {
+				type: "messages",
+				sendUid: this.uid,
+				receiveGroupId: this.groupInfo.groupId,
+				sendAvatar: this.avatar,
+				messages: receiveMessage
+			}
+			this.groupwebSocketInstance.send(JSON.stringify(message))
+
+			let addMessage = {
+				type: 'my', // 消息类型
+				message: receiveMessage // 消息内容
+			}
+			console.log(this.groupInfo.messages)
+			this.groupInfo.messages.push(addMessage)
+			this.groupInfo.latestNews = receiveMessage
 			return true
 		},
 	},

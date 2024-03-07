@@ -220,23 +220,6 @@ interface Friend {
   friendAvatar: string; // 头像信息
 }
 
-const getFriendAvatar = (uid) => {
-  console.log(uid);
-  console.log(friendInfo);
-  if (friendInfo) {
-    const friend = friendInfo.value.find((friend: any) => friend.friendId === uid);
-    if (friend) {
-      console.log("找到的朋友对象:", friend);
-      return friend.friendAvatar;
-    } else {
-      console.log("未找到匹配的朋友对象");
-      return '';
-    }
-  } else {
-    console.log("friendInfo 为 undefined");
-    return '';
-  }
-}
 
 
 

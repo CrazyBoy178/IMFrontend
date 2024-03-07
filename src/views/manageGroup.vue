@@ -180,6 +180,7 @@ import axios from "axios";
 import type {UploadProps} from 'element-plus'
 import {ElMessage} from 'element-plus'
 import router from "@/router";
+import Group from "@/views/group.vue";
 
 const userStore = useUser()
 
@@ -229,10 +230,10 @@ const handleDelete1 = (index: number, row: GroupInfo) => {
   rowGroupId.value = row.groupId;
 }
 
-const handleDownload = async (index: number, row: User) => {
+const handleDownload = async (index: number, row: GroupInfo) => {
   try {
     // 发起 HTTP GET 请求获取文件路径
-    const response = await axios.get(`http://localhost:8080/msgInfo/${uid.value}/${row.GroupId}`);
+    const response = await axios.get(`http://localhost:8080/msgInfo/group/${row.groupId}`);
     const filePath: string = response.data;
 
     // 发起 HTTP POST 请求下载文件

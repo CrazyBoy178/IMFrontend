@@ -48,19 +48,16 @@
       <el-col :span="6">
         <div class="grid-content friend-list">
           <div v-infinite-scroll="friendListLoadInfiniteScroll" class="infinite-scroll">
-            <div v-for="(friend,index) in friendsListInfo" :key="index" class="friend" @click="selectFriend(friend)">
-              <div class="friend-avatar">
-                <img alt="" :src="friend.avatar">
-              </div>
+            <div v-for="(group,index) in groups" :key="index" class="friend" @click="selectGroup(group)">
               <div class="message">
                 <div class="nickname">
-                  <div>{{ friend.nickname }}</div>
-                  <div class="badge" v-if="friend.unreadMessagesCount > 0">
-                    {{ friend.unreadMessagesCount < 99 ? friend.unreadMessagesCount : '99+' }}
+                  <div>{{ group.groupName }}</div>
+                  <div class="badge" v-if="group.unreadMessagesCount > 0">
+                    {{ group.unreadMessagesCount < 99 ? group.unreadMessagesCount : '99+' }}
                   </div>
                 </div>
                 <div class="new-message">
-                  {{ friend.latestNews }}
+                  {{ group.latestNews }}
                 </div>
               </div>
             </div>
@@ -72,20 +69,14 @@
         <div class="grid-content chats">
           <div class="top">
             <div class="top-nickname">
-              {{ friendsInfo.nickname }}
-            </div>
-            <div class="top-status">
-              <div :style="{background: friendsInfo.status ? '#77FD59' : '#A8ABB2'}" class="state"></div>
-              <div class="online-or-offline">
-                {{ friendsInfo.status ===1 ? '在线' : '离线' }}
-              </div>
+              {{ groupInfo.groupName }}
             </div>
           </div>
 
           <div class="middle">
             <div class="chat">
               <div v-infinite-scroll="chatLoadInfiniteScroll" class="infinite-scroll1">
-                <div v-for="(message,index) in friendsInfo.messages" :key="index">
+                <div v-for="(message,index) in groupInfo.messages" :key="index">
                   <div v-if="message.type === 'friend'" class="left">
                     <div class="left-avatar">
                       <img alt="" :src=message.sendAvatar>
@@ -202,7 +193,7 @@ import router from "@/router";
 
 const userStore = useUser()
 
-const {uid,nickname,avatar,jointime, friendsInfo, friendsListInfo} = storeToRefs(userStore)
+const {uid,nickname,avatar,jointime, friendsInfo, friendsListInfo, groupInfo , groupsListInfo} = storeToRefs(userStore)
 const regForm = ref(null);
 const network = reactive(useNetwork())
 const {isOnline} = toRefs(network)
@@ -212,33 +203,6 @@ const imageUrl = ref('')
 
 let dialogFormVisible = ref(false)
 
-let friendInfo: Ref<Friend[]> = ref([])
-
-interface Friend {
-  friendId: string;
-  friendnickname: string;
-  friendAvatar: string; // 头像信息
-}
-
-const getFriendAvatar = (uid) => {
-  console.log(uid);
-  console.log(friendInfo);
-  if (friendInfo) {
-    const friend = friendInfo.value.find((friend: any) => friend.friendId === uid);
-    if (friend) {
-      console.log("找到的朋友对象:", friend);
-      return friend.friendAvatar;
-    } else {
-      console.log("未找到匹配的朋友对象");
-      return '';
-    }
-  } else {
-    console.log("friendInfo 为 undefined");
-    return '';
-  }
-}
-
-
 
 const form = ref({
   uid: userStore.uid,
@@ -246,14 +210,26 @@ const form = ref({
 })
 
 
-function selectFriend(friend) {
 
+let groups: Ref<GroupInfo[]> = ref([])
+
+interface GroupInfo {
+  groupId: string
+  groupName: string
+  groupOwner: string
+  groupMember:string
+
+}
+
+
+function selectGroup(group) {
   // 设置当前选中的好友信息
-  userStore.friendsInfo = friend;
-  console.log(friend.unreadMessagesCount)
+  userStore.groupInfo = group;
+  console.log(group)
+  console.log(info)
+  userStore.createGroupWebSocket(info.value.uid,group.groupId, info.value.nickname, info.value.avatar, info.value.jtime)
   // 清零未读消息数
-  userStore.clearUnreadMessages(friend);
-  console.log(friend.unreadMessagesCount)
+  userStore.clearUnreadGroupMessages(group);
 
 }
 
@@ -357,16 +333,23 @@ const submit = async () => {
   }
   reset()
 }
+const info = ref({
+  uid: userStore.uid,
+  nickname: userStore.nickname,
+  avatar: userStore.avatar,
+  jtime: userStore.jointime,
+})
 
 async function getInfo(value:any) {
   localStorage.setItem('token',value)
   try {
     const dectoken = await axios.post('http://localhost:8080/token/decodeToken', localStorage.getItem('token'));
-    const info = dectoken.data;
-    form.value.uid = info.uid
-    form.value.nickname = info.nickname
+    info.value = dectoken.data;
+    form.value.uid = info.value.uid
+    form.value.nickname = info.value.nickname
 
-    await userStore.createWebSocket(info.uid, info.nickname, info.avatar, info.jtime)
+    // await userStore.createWebSocket(info.uid, info.nickname, info.avatar, info.jtime)
+
 
   } catch (error) {
     console.error('token请求失败', error);
@@ -376,13 +359,13 @@ async function getInfo(value:any) {
 onMounted(async () => {
   await getInfo(localStorage.getItem('token'));
 
-  await fetchFriends(userStore.uid);
+  await fetchGroups(userStore.uid);
 });
-const fetchFriends = async (uid)=>{
+const fetchGroups = async (uid)=>{
   try {
-    const response = await axios.get(`http://localhost:8080/friend/find/${uid}`);
+    const response = await axios.get(`http://localhost:8080/group/getUserGroups/${uid}`);
     console.log(response.data)
-    friendInfo.value = response.data
+    groups.value = response.data
   } catch (error) {
     console.error('Error fetching friends:', error);
     throw error; // You might want to handle this error in the calling code
@@ -391,7 +374,7 @@ const fetchFriends = async (uid)=>{
 
 const sendMessages = async () => {
   if (message.value) {
-    if (await userStore.sendMessages(message.value)) {
+    if (await userStore.sendGroupMessages(message.value)) {
       message.value = ''
     }
   }
